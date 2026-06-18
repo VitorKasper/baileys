@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp Bot Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; background: #f0f2f5; padding-top: 50px; }
+        .card { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); max-width: 400px; margin: auto; }
+        .status { font-weight: bold; font-size: 1.2em; margin-bottom: 20px; }
+        .connected { color: #25D366; }
+        .disconnected { color: #ff3b30; }
+        img#qr { max-width: 100%; border-radius: 10px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>Painel do Bot</h2>
+        <div id="statusText" class="status disconnected">Carregando status...</div>
+        <img id="qr" style="display:none;" alt="QR Code">
+    </div>
+
+    <script>
+        async function fetchStatus() {
+            try {
+                const res = await fetch('/status');
+                const data = await res.json();
+                
+                const statusText = document.getElementById('statusText');
+                const qrImage = document.getElementById('qr');
+
+                if (data.connected) {
+                    statusText.textContent = "✅ Conectado";
+                    statusText.className = "status connected";
+                    qrImage.style.display = "none";
+                } else {
+                    statusText.textContent = "Aguardando leitura do QR Code...";
+                    statusText.className = "status disconnected";
+                    if (data.qr) {
+                        qrImage.src = data.qr;
+                        qrImage.style.display = "block";
+                    }
+                }
+            } catch (error) {
+                console.error("Erro ao buscar status");
+            }
+        }
+        setInterval(fetchStatus, 2000);
+        fetchStatus();
+    </script>
+</body>
+</html>
