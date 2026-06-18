@@ -9,7 +9,6 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 import express from 'express';
 import cors from 'cors';
-import path from 'path';
 import QRCode from 'qrcode';
 import axios from 'axios';
 import makeWASocket, { useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion } from '@whiskeysockets/baileys';
