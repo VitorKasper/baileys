@@ -1,7 +1,3 @@
-from core.fluxo import Fluxo
-
-fluxo = Fluxo()
-
 from fastapi import FastAPI, Request
 import requests
 import os
@@ -49,24 +45,10 @@ async def receive_webhook(request: Request):
             
             # --- SUA REGRA DE NEGÓCIO AQUI ---
             # Exemplo de Auto-Resposta simples:
-            
-            resposta = fluxo.run(
-                sender=sender,
-                text=text
-            )
-
-            if resposta:
-                # Como 'mensagem' é uma lista, percorremos enviando uma por uma
-                for texto_msg in resposta["mensagem"]:
-                    payload = {
-                        "number": resposta["numero"],
-                        "text": texto_msg
-                    }
-                    # Envia para a API Node.js rodando na porta 9000
-                    requests.post(NODE_API_URL, json=payload)
-                    
-            return {"status": "ok"}
-
+            if text.lower() == "oi":
+                enviar_mensagem(sender, "Olá! Sou um bot de demonstração em Python 🐍")
+            elif text.lower() == "ping":
+                enviar_mensagem(sender, "Pong! 🏓")
             # ---------------------------------
 
     return {"status": "ok"}
