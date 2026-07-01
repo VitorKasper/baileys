@@ -1,33 +1,97 @@
-# 🤖 WhatsApp Bot Boilerplate (Node.js + Python)
+# WhatsApp Bot Boilerplate (Node.js + Python)
 
-Este projeto é um template pronto para você criar chatbots para WhatsApp! Ele separa a complexidade da conexão do WhatsApp Web (usando [Baileys](https://github.com/WhiskeySockets/Baileys) em Node.js) da lógica do seu bot, permitindo que você escreva **toda a sua regra de negócio em Python**.
+Template para criar chatbots no WhatsApp sem precisar reconfigurar o Baileys a cada projeto. A conexão com o WhatsApp fica no serviço Node.js; toda a regra de negócio fica no Python.
 
-## 🚀 Como Funciona?
-1. O serviço **Node.js** se conecta ao WhatsApp e escuta as mensagens.
-2. Toda mensagem nova é enviada via **Webhook** para o serviço **Python**.
-3. O script **Python** processa a mensagem e envia uma requisição de volta para o Node.js para responder ao usuário.
-4. Inclui um **Dashboard web** para escaneamento fácil do QR Code!
+## Como funciona
 
-## ⚙️ Como rodar?
+```
+WhatsApp → Node.js (Baileys) → POST /webhook → Python (FastAPI)
+                 ↑                                      |
+                 └──────── POST /send ←─────────────────┘
+```
 
-Você precisará de 2 terminais abertos.
+1. O Node.js conecta ao WhatsApp e encaminha cada mensagem recebida ao Python via webhook.
+2. O Python processa a mensagem e chama `/send` no Node.js para responder.
+3. Um dashboard web em `http://localhost:9000` exibe o QR Code para autenticação.
 
-### Passo 1: Iniciar a API Baileys (Terminal 1)
+## Pré-requisitos
+
+- Node.js 20+
+- Python 3.11+
+
+## Configuração
+
+Copie o arquivo de exemplo e ajuste as variáveis:
+
+```bash
+cp .env.example .env
+```
+
+| Variável           | Padrão                          | Descrição                                      |
+|--------------------|---------------------------------|------------------------------------------------|
+| `PORTA_BAILEYS`    | `9000`                          | Porta do serviço Node.js                       |
+| `PORTA_PYTHON`     | `9090`                          | Porta do serviço Python                        |
+| `NODE_API_URL`     | `http://localhost:9000/send`    | URL que o Python usa para enviar mensagens     |
+| `PYTHON_WEBHOOK_URL` | `http://localhost:9090/webhook` | URL que o Node.js usa para entregar mensagens |
+| `API_KEY`          | _(vazio)_                       | Chave de autenticação do endpoint `/send` (recomendado) |
+
+> Para gerar uma `API_KEY` segura: `openssl rand -hex 32`
+
+## Rodando localmente
+
+**Terminal 1 — serviço Node.js:**
 ```bash
 cd baileys
 npm install
-npm start
+npm run dev
+```
 
-Acesse http://localhost:3000 no seu navegador. Um QR Code aparecerá. Escaneie-o com o seu WhatsApp para conectar.
+Acesse `http://localhost:9000`, escaneie o QR Code com o WhatsApp e aguarde "Conectado".
 
-Passo 2: Iniciar a Lógica do Bot em Python (Terminal 2)
-Bash
+**Terminal 2 — bot Python:**
+```bash
 cd python-bot
 pip install -r requirements.txt
 python main.py
-Pronto! Agora envie um "Oi" ou "Ping" para o WhatsApp conectado e veja a mágica acontecer. Edite o arquivo python-bot/main.py para criar suas próprias regras de negócios!
+```
 
+Envie "oi" ou "ping" para o número conectado para testar.
 
-Com essa base sólida, a comunidade vai conseguir fazer o `git clone`, abrir a API do Baileys para ler o QR code em `localhost:3000`, e codar os bots livremente escrevendo apenas no arquivo Python!
+## Rodando com Docker
 
-Qualquer dúvida sobre a implementação ou se quiser adicionar mais algum recurso (como en
+```bash
+docker compose up --build
+```
+
+A sessão do WhatsApp é persistida em `baileys/auth_info_baileys/` via volume — você não precisa escanear o QR a cada restart.
+
+## Adicionando sua lógica
+
+Edite `python-bot/main.py` na seção marcada com `# --- SUA REGRA DE NEGÓCIO AQUI ---`:
+
+```python
+if text.lower() == "oi":
+    enviar_mensagem(sender, "Olá!")
+# adicione seus casos aqui
+```
+
+## API do serviço Node.js
+
+| Método | Endpoint  | Descrição                                           |
+|--------|-----------|-----------------------------------------------------|
+| GET    | `/status` | Retorna `{ connected, qr }` com o estado da conexão |
+| POST   | `/send`   | Envia mensagem. Body: `{ number, text }`. Requer `x-api-key` se `API_KEY` estiver configurada |
+| POST   | `/webhook`| _(interno)_ Recebido pelo Python, não exposto externamente |
+
+## Estrutura
+
+```
+.
+├── baileys/          # Serviço Node.js + Baileys
+│   ├── src/index.ts  # Lógica de conexão e endpoints
+│   └── public/       # Dashboard web (QR Code)
+├── python-bot/       # Lógica do bot
+│   └── main.py       # Webhook + regra de negócio
+├── docker-compose.yml
+└── .env.example
+```

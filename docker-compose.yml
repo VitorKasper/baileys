@@ -1,0 +1,24 @@
+services:
+  baileys:
+    build: ./baileys
+    ports:
+      - "${PORTA_BAILEYS:-9000}:9000"
+    env_file: .env
+    volumes:
+      - ./baileys/auth_info_baileys:/app/auth_info_baileys
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:9000/status"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  python-bot:
+    build: ./python-bot
+    ports:
+      - "${PORTA_PYTHON:-9090}:9090"
+    env_file: .env
+    depends_on:
+      baileys:
+        condition: service_healthy
+    restart: unless-stopped
