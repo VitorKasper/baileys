@@ -1,0 +1,26 @@
+{
+  "cargas_ignoradas": [
+    "BRANQUEADO",
+    "SOJA EM GRAOS",
+    "SOJA GRAOS",
+    "GOMA DE SOJA",
+    "BORRA DE SOJA",
+    "RESIDUO DE SOJA",
+    "LDCT BRINQUETE",
+    "MILHO",
+    "LINTER",
+    "FARELO DE AMENDOIM",
+    "FARELO DE ALGODAO",
+    "ALGODAO EM PLUMA"
+  ],
+  "destinatarios": [
+    {
+      "nome": "Vitor Kasper",
+      "jid": "555184748220@s.whatsapp.net"
+    },
+    {
+      "nome": "RPA X LDC TRANSPORTES",
+      "jid": "120363428673380921@g.us"
+    }
+  ]
+}

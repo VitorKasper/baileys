@@ -1,6 +1,8 @@
 import path from 'path';
 import dotenv from 'dotenv';
 
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
 dotenv.config({
   path: path.resolve(__dirname, '../../.env')
 });
@@ -116,7 +118,22 @@ app.post('/send', requireApiKey, async (req: Request, res: Response) => {
             return;
         }
 
-        const jid = `${number}@s.whatsapp.net`;
+        // Aceita JID completo (grupo @g.us ou contato @s.whatsapp.net);
+        // se vier só o número, completa como contato individual.
+        const jid = number.includes('@') ? number : `${number}@s.whatsapp.net`;
+
+        // Para contato individual (não grupo), confirma que o número existe
+        // de fato no WhatsApp — sendMessage pode "ter sucesso" mesmo para um
+        // número inválido/não registrado, sem nunca entregar a mensagem.
+        if (jid.endsWith('@s.whatsapp.net')) {
+            const [resultado] = (await sock.onWhatsApp(jid)) ?? [];
+            if (!resultado?.exists) {
+                console.warn(`⚠️ Número não encontrado no WhatsApp: ${jid}`);
+                res.status(400).json({ error: `Número não está registrado no WhatsApp: ${jid}` });
+                return;
+            }
+        }
+
         await sock.sendMessage(jid, { text });
         res.json({ success: true, message: 'Mensagem enviada!' });
     } catch (error: unknown) {

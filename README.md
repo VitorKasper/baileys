@@ -55,7 +55,11 @@ pip install -r requirements.txt
 python main.py
 ```
 
-Envie "oi" ou "ping" para o número conectado para testar.
+`python main.py` sobe o webhook (que apenas recebe e ignora mensagens — o bot
+não reage a nada) e, em background, o loop de auditoria de integração
+(`run_auditoria_integracao.py`), que pesquisa erros a cada
+`AUDITORIA_INTERVALO_SEGUNDOS` (padrão 60s) e envia o relatório via WhatsApp
+aos destinatários configurados em `config/auditoria_integracao.json`.
 
 ## Rodando com Docker
 
@@ -65,15 +69,13 @@ docker compose up --build
 
 A sessão do WhatsApp é persistida em `baileys/auth_info_baileys/` via volume — você não precisa escanear o QR a cada restart.
 
-## Adicionando sua lógica
+## Auditoria de integração
 
-Edite `python-bot/main.py` na seção marcada com `# --- SUA REGRA DE NEGÓCIO AQUI ---`:
-
-```python
-if text.lower() == "oi":
-    enviar_mensagem(sender, "Olá!")
-# adicione seus casos aqui
-```
+A lógica de scraping/relatório de erros fica em
+`python-bot/services/web/integracao_service.py` e
+`python-bot/run_auditoria_integracao.py`. A cada ciclo, a `data_inicio` da
+pesquisa é sempre igual à `data_fim` do ciclo anterior, para não deixar
+lacunas nem duplicar registros.
 
 ## API do serviço Node.js
 

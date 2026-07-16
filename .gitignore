@@ -4,3 +4,6 @@
 **auth_info/
 **.env
 **messages_cache
+**auth_info_baileys/
+**dist/
+**output/
